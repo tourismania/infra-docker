@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  nginx:
+    image: nginx:1.21.6-alpine
+    ports:
+      - "8082:8082"
+    volumes:
+      - ./services/nginx/conf.d/${ENV}:/etc/nginx/conf.d
+      - ./services/nginx/logs:/var/log/nginx
+      - ${SSL_PATH}:/etc/nginx/ssl
+    networks:
+      tourismania_network:
+        ipv4_address: ${SUBNET_NGINX_IP}
+    depends_on:
+      - web
+
+  web:
+    build:
+      context: ${WEB_PATH}/
+      dockerfile: Dockerfile
+      target: ${WEB_ENV}
+    networks:
+      - tourismania_network
+
+networks:
+  tourismania_network:
+    ipam:
+      driver: default
+      config:
+        - subnet: ${SUBNET}
