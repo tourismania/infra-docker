@@ -23,6 +23,27 @@ services:
     networks:
       - tourismania_network
 
+  api:
+    build:
+      context: ${API_PATH}/
+      dockerfile: Dockerfile
+      target: frankenphp_prod
+    environment:
+      SERVER_NAME: ${API_SERVER_NAME}
+      MERCURE_PUBLISHER_JWT_KEY: ${CADDY_MERCURE_JWT_SECRET:-!ChangeThisMercureHubJWTSecretKey!}
+      MERCURE_SUBSCRIBER_JWT_KEY: ${CADDY_MERCURE_JWT_SECRET:-!ChangeThisMercureHubJWTSecretKey!}
+    expose:
+      - 8080
+    volumes:
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - tourismania_network
+
+volumes:
+  caddy_data:
+  caddy_config:
+
 networks:
   tourismania_network:
     ipam:
