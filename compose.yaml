@@ -55,6 +55,53 @@ services:
     networks:
       - tourismania_network
 
+  kafka:
+    image: apache/kafka:4.1.0
+    ports:
+      - "9092:9092"
+      - "9093:9093"
+    environment:
+      # Основные настройки KRaft
+      - KAFKA_ENABLE_KRAFT=yes
+      - KAFKA_PROCESS_ROLES=broker,controller
+      - KAFKA_NODE_ID=1
+      - KAFKA_CONTROLLER_QUORUM_VOTERS=1@kafka:9093
+
+      # Настройка слушателей
+      - KAFKA_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093
+      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092
+      - KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      - KAFKA_CONTROLLER_LISTENER_NAMES=CONTROLLER
+
+      # Прочие настройки
+      #- KAFKA_LOG_DIRS=/var/lib/kafka/data
+      #- ALLOW_PLAINTEXT_LISTENER=yes
+    volumes:
+      - ./services/kafka/data:/var/lib/kafka/data
+
+  # akhq - web для kafka
+  kafka-ui:
+    image: tchiotludo/akhq:latest
+    depends_on:
+      - kafka
+    ports:
+      - "8092:8080"
+    environment:
+      # Основная конфигурация AKHQ
+      AKHQ_CONFIGURATION: |
+        akhq:
+          connections:
+            kafka-local:
+              properties:
+                bootstrap.servers: "kafka:9092"
+          server:
+            access-log:
+              enabled: true
+          pagination:
+            page-size: 25
+          ui:
+            default-view: topics
+
 volumes:
   caddy_data:
   caddy_config:
