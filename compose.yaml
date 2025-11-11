@@ -57,9 +57,9 @@ services:
 
   kafka:
     image: apache/kafka:4.1.0
-    ports:
-      - "9092:9092"
-      - "9093:9093"
+    expose:
+      - "9092" # для внешних потребителей (продюсеры, консумеры, kafka-ui)
+      - "9093" # для управления методанными (kraft)
     environment:
       # Основные настройки KRaft
       - KAFKA_ENABLE_KRAFT=yes
@@ -74,21 +74,26 @@ services:
       - KAFKA_CONTROLLER_LISTENER_NAMES=CONTROLLER
 
       # Прочие настройки
-      #- KAFKA_LOG_DIRS=/var/lib/kafka/data
+      - KAFKA_LOG_DIRS=/var/lib/kafka/data
       #- ALLOW_PLAINTEXT_LISTENER=yes
     volumes:
       - ./services/kafka/data:/var/lib/kafka/data
+    networks:
+      - tourismania_network
 
   # akhq - web для kafka
   kafka-ui:
     image: tchiotludo/akhq:latest
     depends_on:
       - kafka
-    ports:
-      - "8092:8080"
+    expose:
+      - "8080"
     environment:
       # Основная конфигурация AKHQ
       AKHQ_CONFIGURATION: |
+        micronaut:
+          security:
+            enabled: true
         akhq:
           connections:
             kafka-local:
@@ -101,6 +106,20 @@ services:
             page-size: 25
           ui:
             default-view: topics
+          security:
+            default-group: no-roles
+            basic-auth:
+              - username: admin
+                password: "${KAFKA_ADMIN_PASSWORD}"
+                groups:
+                - admin
+              - username: reader
+                password: "${KAFKA_READER_PASSWORD}"
+                groups:
+                - reader
+
+    networks:
+      - tourismania_network
 
 volumes:
   caddy_data:
