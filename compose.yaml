@@ -37,6 +37,7 @@ services:
     volumes:
       - caddy_data:/data
       - caddy_config:/config
+      - ./services/api/jwt:/app/config/jwt:rw
     networks:
       - tourismania_network
 
