@@ -78,7 +78,7 @@ services:
       - KAFKA_LOG_DIRS=/var/lib/kafka/data
       #- ALLOW_PLAINTEXT_LISTENER=yes
     volumes:
-      - ./services/kafka/data:/var/lib/kafka/data
+      - ./services/kafka/data:/var/lib/kafka/data:rw
     networks:
       - tourismania_network
 
