@@ -24,8 +24,15 @@ restart: down up
 build: docker-down docker-build
 
 deploy-web-tag:
-	cd ${WEB_PATH} && git fetch --tags && git checkout v$(tag)
+	cd ${WEB_PATH} && git fetch --tags && git checkout $(tag)
 	make down
 	docker compose build web
 	make up
 	make docker-clear
+
+deploy-api-tag:
+	cd ${API_PATH} && git fetch --tags && git checkout $(tag)
+	docker compose build api
+	docker compose restart --no-deps api
+	make docker-clear
+
