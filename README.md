@@ -19,49 +19,6 @@
 2. Далее основной nginx распределяет запросы между проектами (docker compose)
 
 
-```plantuml
-@startuml Nginx Docker Architecture
-	!theme plain
-	skinparam componentStyle rectangle
-	skinparam backgroundColor white
-	
-	[Клиенты\nHTTP запросы] as Clients #LightBlue
-	
-	component "Host машина" as Host #LightYellow {
-	[Основной NGINX\nReverse Proxy\nPort 80/443] as MainNginx #LightCyan
-	}
-	
-	cloud "Docker Compose Networks" as DockerNet #LightGreen {
-	package "Project 1" {
-	[project1-app:8080] as P1App #LightGreen
-	database "project1-db:5432" as P1DB #LightYellow
-	}
-	
-	package "Project 2" {
-	[project2-app:3000] as P2App #LightGreen
-	[project2-redis:6379] as P2Redis #Orange
-	}
-	
-	package "Project 3" {
-	[project3-app:5000] as P3App #LightGreen
-	}
-	}
-	
-	Clients --> MainNginx : HTTP 80/443
-	MainNginx --> P1App : /project1/
-	MainNginx --> P2App : /project2/
-	MainNginx --> P3App : /project3/
-	
-	note right of MainNginx
-	nginx.conf:
-	location /project1/ {
-	proxy_pass http://project1-app:8080/;
-	}
-	end note
-
-@enduml
-```
-
 Пример конфига основного nginx
 ```nginx configuration
 server {
