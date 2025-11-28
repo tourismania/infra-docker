@@ -17,4 +17,4 @@ jobs:
           port: 22
           script: |
             cd ${{ secrets.SSH_PATH_TO_APP }}/infra-docker/
-            make deploy-infra v${{ github.ref_name }}    
+            make deploy-infra TAG=${{ github.ref_name }}    

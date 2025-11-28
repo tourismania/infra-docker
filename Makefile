@@ -23,10 +23,10 @@ down: docker-down
 restart: down up
 build: docker-down docker-build
 
-# example: make deploy-infra tag=v2.0.2
+# example: make deploy-infra TAG=v2.0.2
 deploy-infra:
 	git fetch --tags
-	git checkout $(tag)
+	git checkout $(TAG)
 
 deploy-web-tag:
 	cd ${WEB_PATH} && git fetch --tags && git checkout $(tag)
