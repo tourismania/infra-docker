@@ -18,6 +18,34 @@
 1. Все запросы на сервер (хост-машину) поступают на основной nginx.
 2. Далее основной nginx распределяет запросы между проектами (docker compose)
 
+```mermaid
+graph LR
+    Clients[Клиенты<br/>HTTP запросы] -->|80/443| MainNginx[Основной NGINX<br/>Host машина<br/>Reverse Proxy]
+
+    MainNginx -->|location /project1/| P1App[project1-app:8080]
+    MainNginx -->|location /project2/| P2App[project2-app:3000]
+    MainNginx -->|location /project3/| P3App[project3-app:5000]
+
+    subgraph "Docker Compose Network 1"
+        P1App
+        P1DB[project1-db:5432]
+    end
+
+    subgraph "Docker Compose Network 2"
+        P2App
+        P2Redis[project2-redis:6379]
+    end
+
+    subgraph "Docker Compose Network 3"
+        P3App
+    end
+
+    style MainNginx fill:#e1f5fe
+    style Clients fill:#f3e5f5
+    style P1App fill:#e8f5e8
+    style P2App fill:#e8f5e8
+    style P3App fill:#e8f5e8
+```
 
 Пример конфига основного nginx
 ```nginx configuration
