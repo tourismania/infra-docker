@@ -17,5 +17,4 @@ jobs:
           port: 22
           script: |
             cd ${{ secrets.SSH_PATH_TO_APP }}/infra-docker/
-            git fetch --tags
-            git checkout ${{ github.ref_name }}
+            ls -la
