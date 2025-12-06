@@ -29,7 +29,7 @@ deploy-infra:
 	git checkout $(TAG)
 
 deploy-web-tag:
-	cd ${WEB_PATH} && git fetch --tags && git checkout $(tag)
+	cd ${WEB_PATH} && git fetch --tags && git checkout $(TAG)
 	make down
 	docker compose build web
 	make up
