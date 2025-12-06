@@ -41,5 +41,3 @@ deploy-api-tag:
 	docker compose build api
 	docker compose up -d api
 	make docker-clear
-
-cd
