@@ -36,7 +36,8 @@ deploy-web-tag:
 	make docker-clear
 
 deploy-api-tag:
-	cd ${API_PATH} && git fetch --tags && git checkout $(tag)
+	cd ${API_PATH} && git fetch --tags && git checkout $(TAG)
+	cp ${API_PATH}/.env.production.local ./services/api/envs/.env
 	docker compose build api
 	docker compose restart --no-deps api
 	make docker-clear

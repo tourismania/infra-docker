@@ -24,14 +24,12 @@ services:
       - tourismania_network
 
   api:
+    env_file:
+      - ./services/api/envs/.env
     build:
       context: ${API_PATH}/
       dockerfile: Dockerfile
       target: frankenphp_prod
-    environment:
-      SERVER_NAME: ${API_SERVER_NAME}
-      MERCURE_PUBLISHER_JWT_KEY: ${CADDY_MERCURE_JWT_SECRET:-!ChangeThisMercureHubJWTSecretKey!}
-      MERCURE_SUBSCRIBER_JWT_KEY: ${CADDY_MERCURE_JWT_SECRET:-!ChangeThisMercureHubJWTSecretKey!}
     expose:
       - 8080
     volumes:
