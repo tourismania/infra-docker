@@ -50,7 +50,7 @@ services:
     expose:
       - "5432"
     volumes:
-      - ./services/postgres/data:/var/lib/postgresql/data
+      - postgresql_data:/var/lib/postgresql/data
     networks:
       - tourismania_network
 
@@ -76,7 +76,8 @@ services:
       - KAFKA_LOG_DIRS=/var/lib/kafka/data
       #- ALLOW_PLAINTEXT_LISTENER=yes
     volumes:
-      - ./services/kafka/data:/var/lib/kafka/data:rw
+      # на сами данные
+      - kafka_data:/var/lib/kafka/data:rw
     networks:
       - tourismania_network
 
@@ -123,6 +124,8 @@ services:
 volumes:
   caddy_data:
   caddy_config:
+  kafka_data:
+  postgresql_data:
 
 networks:
   tourismania_network:
