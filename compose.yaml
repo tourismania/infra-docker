@@ -35,6 +35,8 @@ services:
       - "8080"
     networks:
       - tourismania_network
+    depends_on:
+      - postgres
 
   postgres:
     image: postgres:17
