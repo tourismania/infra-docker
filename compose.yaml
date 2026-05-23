@@ -14,12 +14,13 @@ services:
         ipv4_address: ${SUBNET_NGINX_IP}
     depends_on:
       - web
+      - api
 
   web:
     build:
       context: ${WEB_PATH}/
       dockerfile: Dockerfile
-      target: ${WEB_ENV}
+      target: production
     networks:
       - tourismania_network
 
@@ -29,13 +30,9 @@ services:
     build:
       context: ${API_PATH}/
       dockerfile: Dockerfile
-      target: frankenphp_prod
+      target: runner
     expose:
-      - 8080
-    volumes:
-      - caddy_data:/data
-      - caddy_config:/config
-      - ./services/api/jwt:/app/config/jwt:rw
+      - "8080"
     networks:
       - tourismania_network
 
@@ -122,8 +119,6 @@ services:
       - tourismania_network
 
 volumes:
-  caddy_data:
-  caddy_config:
   kafka_data:
   postgresql_data:
 
