@@ -1,6 +1,9 @@
 # Infrastructure Docker
 
-Приложение для единой точки деплоя приложения tourismania
+Docker Compose–инфраструктура для проекта **Tourismania** — единая точка деплоя всех сервисов на одном сервере. Контейнер nginx получает статический IP-адрес, чтобы основной nginx на хост-машине мог проксировать запросы в него. Репозиторий управляет только инфраструктурой; исходный код сервисов хранится в отдельных репозиториях и монтируется через переменные окружения.
+
+**Primary language:** YAML / Shell (Makefile)  
+**Key dependencies:** Docker, Docker Compose, nginx, PostgreSQL 17, Kafka 4.1.0 (KRaft), Go (Air в dev), Vue/Vite
 
 ## Пользователи и группы системы
 
@@ -11,106 +14,82 @@
 `группа_для_работы_с_приложением_tourismania` - для возможности обновления файлов на сервере в папке приложения. Состоит из: `пользователь_разработчик`,
 `пользователь_гитхаб`
 
-## Архитектура
+---
 
-### Конфигурация NGINX
+## Build and Run
 
-1. Все запросы на сервер (хост-машину) поступают на основной nginx.
-2. Далее основной nginx распределяет запросы между проектами (docker compose)
+```bash
+# Поднять все сервисы
+make up
+# или
+docker compose up -d
 
-```mermaid
-graph LR
-    Clients[Клиенты<br/>HTTP запросы] -->|80/443| MainNginx[Основной NGINX<br/>Host машина<br/>Reverse Proxy]
+# Поднять конкретный сервис
+docker compose up -d nginx postgres
 
-    MainNginx -->|location /project1/| P1App[project1-app:8080]
-    MainNginx -->|location /project2/| P2App[project2-app:3000]
-    MainNginx -->|location /project3/| P3App[project3-app:5000]
+# Остановить всё
+make down
 
-    subgraph "Docker Compose Network 1"
-        P1App
-        P1DB[project1-db:5432]
-    end
+# Пересобрать образы и перезапустить
+make build   # down → build
+make restart # down → up
 
-    subgraph "Docker Compose Network 2"
-        P2App
-        P2Redis[project2-redis:6379]
-    end
+# Посмотреть логи
+docker compose logs -f [service]
 
-    subgraph "Docker Compose Network 3"
-        P3App
-    end
+# Полная очистка (включая volumes — деструктивно!)
+make docker-down-clear
 
-    style MainNginx fill:#e1f5fe
-    style Clients fill:#f3e5f5
-    style P1App fill:#e8f5e8
-    style P2App fill:#e8f5e8
-    style P3App fill:#e8f5e8
+# Очистить неиспользуемые образы/контейнеры
+make docker-clear
 ```
 
-Пример конфига основного nginx
-```nginx configuration
-server {
-    listen 80;
-    server_name *;
-    return 301 https://$host$request_uri;
-}
+---
 
-server {
-        listen 443 ssl;
-        server_name *;
+## Deployment
 
-        ssl_certificate 'path_to_ssl.cer';
-        ssl_certificate_key 'path_to_ssl.key';
+```bash
+# Переключить инфраструктуру на тег
+make deploy-infra TAG=v2.0.2
 
-        location / {
+# Обновить frontend (web) до тега
+make deploy-web-tag TAG=v1.5.0
 
-                proxy_set_header Host $host;
-                proxy_set_header X-Real-IP $remote_addr;
-                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-                proxy_set_header X-Forwarded-Proto $scheme;
-                proxy_set_header X-NginX-Proxy true;
-                proxy_set_header Upgrade $http_upgrade;
-                proxy_set_header Connection "upgrade";
-
-                proxy_pass http://ip_address_docker_container:port; # IP-адрес контейнера Docker
-        }
-}
-
-
+# Обновить Go API до тега
+make deploy-api-tag TAG=v3.1.0
 ```
 
-### Конфигурация Docker
+---
 
-Контейнеру с nginx выдается статический IP, чтобы можно было достучаться из nginx на хосте
+## Development Process
 
-```yaml
-version: "3.9"
+### Workflow
 
-services:
-  nginx:
-    image: nginx:latest
-    container_name: nginx_container
-    networks:
-      custom_network:
-        ipv4_address: 'ip_address_docker_container'
-    volumes:
-      - ./nginx_container.conf:/etc/nginx/conf.d/default.conf
-    ports:
-      - "8080:8080"
-
-networks:
-  custom_network:
-    driver: bridge
-    ipam:
-      config:
-        - subnet: 192.168.100.0/24
+```
+Plan → Issue → Implement → Review → Merge → Docs
 ```
 
-## База данных
+| Фаза | Описание |
+|------|----------|
+| **Plan** | Определить scope, зависимости и владение файлами. |
+| **Issue** | Создать GitHub Issue с критериями приёмки и ограничениями. |
+| **Implement** | Ветка от `main`. Следовать конвенциям. |
+| **Review** | PR → ревью → все замечания разрешены. |
+| **Merge** | Мёрж в `main` после апрува. |
+| **Docs** | Обновить затронутую документацию. Закрыть issue. |
 
-PostgreSQL
+---
 
-Пользователи:
-- для root доступа
-- для сервиса api (admin_role)
+## Validation Gates
 
+Перед мёржем PR:
+
+- [ ] Конфиги валидны (`docker compose config` без ошибок)
+- [ ] Стек поднимается локально (`make up` без ошибок)
+- [ ] Nginx корректно маршрутизирует запросы в обоих режимах (local / production)
+- [ ] Секреты не попали в коммит
+- [ ] Документация обновлена (CLAUDE.md, README.md при необходимости)
+- [ ] PR ограничен scope issue
+- [ ] Ревью выполнено, все замечания разрешены
+
+---
