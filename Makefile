@@ -38,6 +38,8 @@ deploy-web-tag:
 deploy-api-tag:
 	cd ${API_PATH} && git fetch --tags && git checkout $(TAG)
 	cp ${API_PATH}/.env ./services/api/envs/.env
-	docker compose up -d api
+	make down
+	docker compose build api
+	make up
 	make docker-clear
 	
