@@ -29,8 +29,8 @@ services:
       - api_jwt_private                                                                                                                                                                                                      
       - api_jwt_public                                                                                                                                                                                                       
     environment:                                                                                                                                                                                                         
-      JWT_PRIVATE_KEY_PATH: /run/secrets/jwt_private                                                                                                                                                                     
-      JWT_PUBLIC_KEY_PATH: /run/secrets/jwt_public    
+      JWT_PRIVATE_KEY_PATH: /run/secrets/api_jwt_private                                                                                                                                                                     
+      JWT_PUBLIC_KEY_PATH: /run/secrets/api_jwt_public    
     env_file:
       - ./services/api/envs/.env
     build:
