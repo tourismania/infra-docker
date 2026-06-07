@@ -25,15 +25,18 @@ services:
       - tourismania_network
 
   api:
+    secrets:                                                                                                                                                                                                             
+      - api_jwt_private                                                                                                                                                                                                      
+      - api_jwt_public                                                                                                                                                                                                       
+    environment:                                                                                                                                                                                                         
+      JWT_PRIVATE_KEY_PATH: /run/secrets/jwt_private                                                                                                                                                                     
+      JWT_PUBLIC_KEY_PATH: /run/secrets/jwt_public    
     env_file:
       - ./services/api/envs/.env
     build:
       context: ${API_PATH}/
       dockerfile: Dockerfile
       target: runner
-    volumes:
-      - ${API_PATH}/config/jwt/private.pem:/app/config/jwt/private.pem:ro
-      - ${API_PATH}/config/jwt/public.pem:/app/config/jwt/public.pem:ro
     expose:
       - "8080"
     networks:
@@ -126,6 +129,12 @@ services:
 volumes:
   kafka_data:
   postgresql_data:
+                                                                                                                                                                                                             
+secrets:                                                                                                                                                                                                               
+  api_jwt_private:                                                                                                                                                                                                         
+    file: ${API_PATH}/config/jwt/private.pem                                                                                                                                                                                     
+  api_jwt_public:                                                                                                                                                                                                          
+    file: ${API_PATH}/config/jwt/public.pem                                      
 
 networks:
   tourismania_network:
