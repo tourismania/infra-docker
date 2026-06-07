@@ -26,8 +26,12 @@ services:
 
   api:
     secrets:                                                                                                                                                                                                             
-      - api_jwt_private                                                                                                                                                                                                      
-      - api_jwt_public                                                                                                                                                                                                       
+      - source: api_jwt_private                                                                                                                                                                                        
+        target: api_jwt_private                                                                                                                                                                                        
+        mode: 0444 #  0444 — read-only для всех пользователей                                                                                                                                                                                                    
+      - source: api_jwt_public                                                                                                                                                                                         
+        target: api_jwt_public                                                                                                                                                                                         
+        mode: 0444 #  0444 — read-only для всех пользователей                                                                                                                                                                                                   
     environment:                                                                                                                                                                                                         
       JWT_PRIVATE_KEY_PATH: /run/secrets/api_jwt_private                                                                                                                                                                     
       JWT_PUBLIC_KEY_PATH: /run/secrets/api_jwt_public    
