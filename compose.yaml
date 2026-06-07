@@ -31,6 +31,9 @@ services:
       context: ${API_PATH}/
       dockerfile: Dockerfile
       target: runner
+    volumes:
+      - ${API_PATH}/config/jwt/private.pem:/app/config/jwt/private.pem:ro
+      - ${API_PATH}/config/jwt/public.pem:/app/config/jwt/public.pem:ro
     expose:
       - "8080"
     networks:
