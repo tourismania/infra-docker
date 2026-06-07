@@ -25,22 +25,15 @@ services:
       - tourismania_network
 
   api:
-    secrets:                                                                                                                                                                                                             
-      - source: api_jwt_private                                                                                                                                                                                        
-        target: api_jwt_private                                                                                                                                                                                        
-        mode: 0444 #  0444 — read-only для всех пользователей                                                                                                                                                                                                    
-      - source: api_jwt_public                                                                                                                                                                                         
-        target: api_jwt_public                                                                                                                                                                                         
-        mode: 0444 #  0444 — read-only для всех пользователей                                                                                                                                                                                                   
-    environment:                                                                                                                                                                                                         
-      JWT_PRIVATE_KEY_PATH: /run/secrets/api_jwt_private                                                                                                                                                                     
-      JWT_PUBLIC_KEY_PATH: /run/secrets/api_jwt_public    
     env_file:
       - ./services/api/envs/.env
     build:
       context: ${API_PATH}/
       dockerfile: Dockerfile
       target: runner
+    volumes:
+      - ${API_PATH}/config/jwt/private.pem:/app/config/jwt/private.pem:ro
+      - ${API_PATH}/config/jwt/public.pem:/app/config/jwt/public.pem:ro
     expose:
       - "8080"
     networks:
@@ -132,13 +125,7 @@ services:
 
 volumes:
   kafka_data:
-  postgresql_data:
-                                                                                                                                                                                                             
-secrets:                                                                                                                                                                                                               
-  api_jwt_private:                                                                                                                                                                                                         
-    file: ${API_PATH}/config/jwt/private.pem                                                                                                                                                                                     
-  api_jwt_public:                                                                                                                                                                                                          
-    file: ${API_PATH}/config/jwt/public.pem                                      
+  postgresql_data:                           
 
 networks:
   tourismania_network:
