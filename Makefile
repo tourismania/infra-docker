@@ -42,4 +42,8 @@ deploy-api-tag:
 	docker compose build api
 	make up
 	make docker-clear
-	
+
+deploy-bot:
+	docker compose build bot
+	docker compose up -d bot
+	make docker-clear

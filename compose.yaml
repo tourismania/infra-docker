@@ -83,6 +83,16 @@ services:
     networks:
       - tourismania_network
 
+  bot:
+    build:
+      context: ./services/python/
+      dockerfile: Dockerfile
+    env_file:
+      - ./services/python/envs/.env
+    restart: unless-stopped
+    networks:
+      - tourismania_network
+
   # akhq - web для kafka
   kafka-ui:
     image: tchiotludo/akhq:latest

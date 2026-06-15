@@ -3,7 +3,7 @@
 Docker Compose–инфраструктура для проекта **Tourismania** — единая точка деплоя всех сервисов на одном сервере. Контейнер nginx получает статический IP-адрес, чтобы основной nginx на хост-машине мог проксировать запросы в него. Репозиторий управляет только инфраструктурой; исходный код сервисов хранится в отдельных репозиториях и монтируется через переменные окружения.
 
 **Primary language:** YAML / Shell (Makefile)  
-**Key dependencies:** Docker, Docker Compose, nginx, PostgreSQL 17, Kafka 4.1.0 (KRaft), Go (Air в dev), Vue/Vite
+**Key dependencies:** Docker, Docker Compose, nginx, PostgreSQL 17, Kafka 4.1.0 (KRaft), Go (Air в dev), Vue/Vite, Python 3.12 (python-telegram-bot)
 
 ## Пользователи и группы системы
 
@@ -57,7 +57,44 @@ make deploy-web-tag TAG=v1.5.0
 
 # Обновить Go API до тега
 make deploy-api-tag TAG=v3.1.0
+
+# Пересобрать и перезапустить Telegram-бота
+make deploy-bot
 ```
+
+---
+
+## Telegram Bot
+
+Бот реализует опросник для подбора туров и отправляет заполненную анкету в Telegram-группу администраторов.
+
+### Настройка перед запуском
+
+1. Заполнить `services/python/envs/.env`:
+   ```env
+   BOT_TOKEN=<токен от @BotFather>
+   ADMIN_CHAT_ID=<chat_id группы/канала для получения анкет>
+   ```
+
+2. Положить фотографии стилей отелей в `services/python/` (опционально):
+   ```
+   hotel_1.jpg  # Тропический
+   hotel_2.jpg  # Бохо-шик
+   hotel_3.jpg  # Минимализм
+   hotel_4.jpg  # Средиземноморский
+   hotel_5.jpg  # Эко-люкс
+   hotel_6.jpg  # Колониальный
+   hotel_7.jpg  # Классический
+   hotel_8.jpg  # Восточный
+   ```
+   Без фото бот работает корректно — шаг с галереей просто пропускается.
+
+3. Собрать и запустить:
+   ```bash
+   make deploy-bot
+   # или
+   docker compose build bot && docker compose up -d bot
+   ```
 
 ---
 
