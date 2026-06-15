@@ -7,4 +7,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-CMD ["python", "bot_2_1.py"]
+CMD ["python", "telegram_bot.py"]

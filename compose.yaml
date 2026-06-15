@@ -83,12 +83,13 @@ services:
     networks:
       - tourismania_network
 
-  bot:
+  telegram-bot:
     build:
-      context: ./services/python/
+      context: ./services/telegram-bot/
       dockerfile: Dockerfile
-    env_file:
-      - ./services/python/envs/.env
+    environment:
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
+      TELEGRAM_BOT_ADMIN_CHAT_ID: ${TELEGRAM_BOT_ADMIN_CHAT_ID}
     restart: unless-stopped
     networks:
       - tourismania_network
