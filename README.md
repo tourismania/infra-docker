@@ -70,13 +70,13 @@ make deploy-bot
 
 ### Настройка перед запуском
 
-1. Заполнить `services/python/envs/.env`:
+1. Заполнить `services/telegram-bot/envs/.env`:
    ```env
    BOT_TOKEN=<токен от @BotFather>
    ADMIN_CHAT_ID=<chat_id группы/канала для получения анкет>
    ```
 
-2. Положить фотографии стилей отелей в `services/python/` (опционально):
+2. Положить фотографии стилей отелей в `services/telegram-bot/` (опционально):
    ```
    hotel_1.jpg  # Тропический
    hotel_2.jpg  # Бохо-шик

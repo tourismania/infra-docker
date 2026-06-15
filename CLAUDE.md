@@ -28,12 +28,11 @@ infra-docker/
 │   │   └── ssl/              # SSL-сертификаты (не коммитится)
 │   ├── api/
 │   │   └── envs/.env         # Переменные для Go API (не коммитится)
-│   └── python/
-│       ├── bot_2_1.py        # Telegram-бот (опросник)
+│   └── telegram-bot/
+│       ├── telegram_bot.py        # Telegram-бот (опросник)
 │       ├── Dockerfile
 │       ├── requirements.txt
-│       ├── hotel_*.jpg       # Фото стилей отелей (не коммитятся, добавить вручную)
-│       └── envs/.env         # Переменные бота (не коммитится)
+│       └── hotel_*.jpg       # Фото стилей отелей (не коммитятся, добавить вручную)
 ├── CLAUDE.md                 # Этот файл
 ├── AGENTS.md                 # Описание архитектуры для агентов (AI)
 ├── STYLE.md                  # Гайд по стилю
@@ -52,7 +51,7 @@ infra-docker/
 | `postgres`  | `postgres:17`                          | `5432:5432`              | БД; named volume `postgresql_data` |
 | `kafka`     | `apache/kafka:4.1.0`                   | —                        | KRaft-режим (без Zookeeper); порты 9092/9093 внутри сети |
 | `kafka-ui`  | `tchiotludo/akhq:latest`               | —                        | Веб-интерфейс Kafka (AKHQ); базовая аутентификация |
-| `bot`       | build из `./services/python/`          | —                        | Telegram-бот (опросник для подбора туров); polling-режим |
+| `telegram-bot`       | build из `./services/telegram-bot/`          | —                        | Telegram-бот (опросник для подбора туров); polling-режим |
 
 ---
 
@@ -95,8 +94,7 @@ infra-docker/
 |---------------------------------|------------|
 | `.env`                          | Основные переменные окружения стека; копируй из `.env.example` |
 | `services/api/envs/.env`        | Переменные Go API |
-| `services/python/envs/.env`     | Переменные Telegram-бота (`BOT_TOKEN`, `ADMIN_CHAT_ID`) |
-| `services/python/hotel_*.jpg`   | Фотографии стилей отелей для бота (8 файлов, добавить вручную) |
+| `services/telegram-bot/hotel_*.jpg`   | Фотографии стилей отелей для бота (8 файлов, добавить вручную) |
 | `services/nginx/ssl/`           | SSL-сертификаты |
 
 ---
