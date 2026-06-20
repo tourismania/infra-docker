@@ -28,11 +28,15 @@ infra-docker/
 │   │   └── ssl/              # SSL-сертификаты (не коммитится)
 │   ├── api/
 │   │   └── envs/.env         # Переменные для Go API (не коммитится)
-│   └── telegram-bot/
-│       ├── telegram_bot.py        # Telegram-бот (опросник)
-│       ├── Dockerfile
-│       ├── requirements.txt
-│       └── hotel_*.jpg       # Фото стилей отелей (не коммитятся, добавить вручную)
+│   ├── telegram-bot/
+│   │   ├── telegram_bot.py        # Telegram-бот (опросник)
+│   │   ├── Dockerfile
+│   │   ├── requirements.txt
+│   │   └── hotel_*.jpg       # Фото стилей отелей (не коммитятся, добавить вручную)
+│   └── xray/
+│       ├── config.json.example    # Шаблон конфига VLESS+Reality клиента
+│       └── .gitignore             # Игнорирует config.json (содержит ключи сервера)
+├── XRAY-CLIENT.md            # Инструкция по настройке X-Ray прокси
 ├── CLAUDE.md                 # Этот файл
 ├── AGENTS.md                 # Описание архитектуры для агентов (AI)
 ├── STYLE.md                  # Гайд по стилю
@@ -52,6 +56,7 @@ infra-docker/
 | `kafka`     | `apache/kafka:4.1.0`                   | —                        | KRaft-режим (без Zookeeper); порты 9092/9093 внутри сети |
 | `kafka-ui`  | `tchiotludo/akhq:latest`               | —                        | Веб-интерфейс Kafka (AKHQ); базовая аутентификация |
 | `telegram-bot`       | build из `./services/telegram-bot/`          | —                        | Telegram-бот (опросник для подбора туров); polling-режим |
+| `xray`      | `ghcr.io/xtls/xray-core:latest`        | —                        | VLESS+Reality прокси-клиент; HTTP `:3128`, SOCKS5 `:1080` внутри сети; используется telegram-bot |
 
 ---
 
@@ -94,6 +99,8 @@ infra-docker/
 |---------------------------------|------------|
 | `.env`                          | Основные переменные окружения стека; копируй из `.env.example` |
 | `services/api/envs/.env`        | Переменные Go API |
+| `services/telegram-bot/hotel_*.jpg`   | Фотографии стилей отелей для бота (8 файлов, добавить вручную) |
+| `services/xray/config.json`     | Конфиг Xray-клиента с реальными ключами сервера; скопировать из `config.json.example` |
 | `services/nginx/ssl/`           | SSL-сертификаты |
 
 ---
