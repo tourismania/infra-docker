@@ -43,7 +43,7 @@ deploy-api-tag:
 	make up
 	make docker-clear
 
-deploy-bot:
-	docker compose build bot
-	docker compose up -d bot
+deploy-telegram-bot:
+	docker compose build telegram-bot
+	docker compose up -d telegram-bot
 	make docker-clear

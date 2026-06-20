@@ -70,10 +70,10 @@ make deploy-bot
 
 ### Настройка перед запуском
 
-1. Указать токен и chat_id администратора в `.env`:
+1. Заполнить `services/telegram-bot/envs/.env`:
    ```env
-   TELEGRAM_BOT_TOKEN=<токен от @BotFather>
-   TELEGRAM_BOT_ADMIN_CHAT_ID=<chat_id группы/канала для получения анкет>
+   BOT_TOKEN=<токен от @BotFather>
+   ADMIN_CHAT_ID=<chat_id группы/канала для получения анкет>
    ```
 
 2. Положить фотографии стилей отелей в `services/telegram-bot/` (опционально):
@@ -93,54 +93,7 @@ make deploy-bot
    ```bash
    make deploy-bot
    # или
-   docker compose build telegram-bot && docker compose up -d telegram-bot
+   docker compose build bot && docker compose up -d bot
    ```
-
----
-
-## X-Ray Proxy
-
-Сервис `xray` запускает Xray-core клиент (VLESS+Reality), который создаёт HTTP-прокси внутри Docker-сети. Telegram-бот использует его для обхода ограничений при обращении к `api.telegram.org`.
-
-Включается через переменную в `.env`:
-```env
-XRAY_HTTP_PROXY=http://xray:3128   # включить
-XRAY_HTTP_PROXY=                   # отключить
-```
-
-Полная инструкция по настройке, конфигу сервера и отладке — в [`XRAY-CLIENT.md`](XRAY-CLIENT.md).
-
----
-
-## Development Process
-
-### Workflow
-
-```
-Plan → Issue → Implement → Review → Merge → Docs
-```
-
-| Фаза | Описание |
-|------|----------|
-| **Plan** | Определить scope, зависимости и владение файлами. |
-| **Issue** | Создать GitHub Issue с критериями приёмки и ограничениями. |
-| **Implement** | Ветка от `main`. Следовать конвенциям. |
-| **Review** | PR → ревью → все замечания разрешены. |
-| **Merge** | Мёрж в `main` после апрува. |
-| **Docs** | Обновить затронутую документацию. Закрыть issue. |
-
----
-
-## Validation Gates
-
-Перед мёржем PR:
-
-- [ ] Конфиги валидны (`docker compose config` без ошибок)
-- [ ] Стек поднимается локально (`make up` без ошибок)
-- [ ] Nginx корректно маршрутизирует запросы в обоих режимах (local / production)
-- [ ] Секреты не попали в коммит
-- [ ] Документация обновлена (CLAUDE.md, README.md при необходимости)
-- [ ] PR ограничен scope issue
-- [ ] Ревью выполнено, все замечания разрешены
 
 ---

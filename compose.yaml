@@ -84,7 +84,7 @@ services:
       - tourismania_network
 
   xray:
-    image: ghcr.io/xtls/xray-core:latest
+    image: ghcr.io/xtls/xray-core:26.2.6
     volumes:
       - ./services/xray/config.json:/etc/xray/config.json:ro
     expose:
