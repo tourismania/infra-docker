@@ -70,10 +70,10 @@ make deploy-bot
 
 ### Настройка перед запуском
 
-1. Заполнить `services/telegram-bot/envs/.env`:
+1. Указать токен и chat_id администратора в `.env`:
    ```env
-   BOT_TOKEN=<токен от @BotFather>
-   ADMIN_CHAT_ID=<chat_id группы/канала для получения анкет>
+   TELEGRAM_BOT_TOKEN=<токен от @BotFather>
+   TELEGRAM_BOT_ADMIN_CHAT_ID=<chat_id группы/канала для получения анкет>
    ```
 
 2. Положить фотографии стилей отелей в `services/telegram-bot/` (опционально):
@@ -93,8 +93,22 @@ make deploy-bot
    ```bash
    make deploy-bot
    # или
-   docker compose build bot && docker compose up -d bot
+   docker compose build telegram-bot && docker compose up -d telegram-bot
    ```
+
+---
+
+## X-Ray Proxy
+
+Сервис `xray` запускает Xray-core клиент (VLESS+Reality), который создаёт HTTP-прокси внутри Docker-сети. Telegram-бот использует его для обхода ограничений при обращении к `api.telegram.org`.
+
+Включается через переменную в `.env`:
+```env
+XRAY_HTTP_PROXY=http://xray:3128   # включить
+XRAY_HTTP_PROXY=                   # отключить
+```
+
+Полная инструкция по настройке, конфигу сервера и отладке — в [`XRAY-CLIENT.md`](XRAY-CLIENT.md).
 
 ---
 
