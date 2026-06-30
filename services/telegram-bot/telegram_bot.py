@@ -527,16 +527,16 @@ async def activities_cb(update: Update, context: ContextTypes.DEFAULT_TYPE):
         context.user_data['design_sel'] = set()
         chat_id = query.message.chat_id
 
-        photo_dir = os.path.dirname(os.path.abspath(__file__))
+        photo_dir = os.path.dirname(os.path.abspath(__file__)) + "/images"
         photo_files = [
-            ("hotel_1.jpg", "🌴 Тропический"),
-            ("hotel_2.jpg", "🎨 Бохо-шик"),
-            ("hotel_3.jpg", "🏙 Минимализм"),
-            ("hotel_4.jpg", "🌊 Средиземноморский"),
-            ("hotel_5.jpg", "🌿 Эко-люкс"),
-            ("hotel_6.jpg", "🏛 Колониальный"),
-            ("hotel_7.jpg", "🎩 Классический"),
-            ("hotel_8.jpg", "🌸 Восточный"),
+            ("hotel_tropical.jpg", "🌴 Тропический"),
+            ("hotel_boho.jpg", "🎨 Бохо-шик"),
+            ("hotel_minimal.jpg", "🏙 Минимализм"),
+            ("hotel_mediterranean.jpg", "🌊 Средиземноморский"),
+            ("hotel_eco_lux.jpg", "🌿 Эко-люкс"),
+            ("hotel_colonial.jpg", "🏛 Колониальный"), 
+            ("hotel_classic.jpg", "🎩 Классический"),
+            ("hotel_east.jpg", "🌸 Восточный"),
         ]
         media = []
         opened = []

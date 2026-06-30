@@ -1,6 +1,6 @@
 # X-Ray Client — Инструкция
 
-Сервис `xray` запускает [Xray-core](https://github.com/XTLS/Xray-core) клиент внутри Docker-сети. Он создаёт локальный HTTP-прокси (`xray:3128`) и SOCKS5-прокси (`xray:1080`), которые туннелируют трафик через Xray-сервер в Казахстане по протоколу **VLESS + Reality**.
+Сервис `xray` запускает [Xray-core](https://github.com/XTLS/Xray-core) клиент внутри Docker-сети. Он создаёт локальный HTTP-прокси (`xray:3128`) и SOCKS5-прокси (`xray:1080`), которые туннелируют трафик через Xray-сервер по протоколу **VLESS + Reality**.
 
 Telegram-бот использует HTTP-прокси для всех исходящих запросов к `api.telegram.org`.
 

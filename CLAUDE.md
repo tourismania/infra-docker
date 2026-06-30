@@ -32,7 +32,7 @@ infra-docker/
 │   │   ├── telegram_bot.py        # Telegram-бот (опросник)
 │   │   ├── Dockerfile
 │   │   ├── requirements.txt
-│   │   └── hotel_*.jpg       # Фото стилей отелей (не коммитятся, добавить вручную)
+│   │   └── images/*.jpg       # Фото стилей отелей
 │   └── xray/
 │       ├── config.json.example    # Шаблон конфига VLESS+Reality клиента
 │       └── .gitignore             # Игнорирует config.json (содержит ключи сервера)

@@ -59,7 +59,7 @@ make deploy-web-tag TAG=v1.5.0
 make deploy-api-tag TAG=v3.1.0
 
 # Пересобрать и перезапустить Telegram-бота
-make deploy-bot
+make deploy-telegram-bot
 ```
 
 ---
@@ -71,25 +71,14 @@ make deploy-bot
 ### Настройка перед запуском
 
 1. Указать токен и chat_id администратора в `.env`:
+
    ```env
    TELEGRAM_BOT_TOKEN=<токен от @BotFather>
    TELEGRAM_BOT_ADMIN_CHAT_ID=<chat_id группы/канала для получения анкет>
    ```
 
-2. Положить фотографии стилей отелей в `services/telegram-bot/` (опционально):
-   ```
-   hotel_1.jpg  # Тропический
-   hotel_2.jpg  # Бохо-шик
-   hotel_3.jpg  # Минимализм
-   hotel_4.jpg  # Средиземноморский
-   hotel_5.jpg  # Эко-люкс
-   hotel_6.jpg  # Колониальный
-   hotel_7.jpg  # Классический
-   hotel_8.jpg  # Восточный
-   ```
-   Без фото бот работает корректно — шаг с галереей просто пропускается.
+2. Собрать и запустить:
 
-3. Собрать и запустить:
    ```bash
    make deploy-bot
    # или
@@ -103,6 +92,7 @@ make deploy-bot
 Сервис `xray` запускает Xray-core клиент (VLESS+Reality), который создаёт HTTP-прокси внутри Docker-сети. Telegram-бот использует его для обхода ограничений при обращении к `api.telegram.org`.
 
 Включается через переменную в `.env`:
+
 ```env
 XRAY_HTTP_PROXY=http://xray:3128   # включить
 XRAY_HTTP_PROXY=                   # отключить
@@ -112,35 +102,12 @@ XRAY_HTTP_PROXY=                   # отключить
 
 ---
 
-## Development Process
-
-### Workflow
-
-```
-Plan → Issue → Implement → Review → Merge → Docs
-```
-
-| Фаза | Описание |
-|------|----------|
-| **Plan** | Определить scope, зависимости и владение файлами. |
-| **Issue** | Создать GitHub Issue с критериями приёмки и ограничениями. |
-| **Implement** | Ветка от `main`. Следовать конвенциям. |
-| **Review** | PR → ревью → все замечания разрешены. |
-| **Merge** | Мёрж в `main` после апрува. |
-| **Docs** | Обновить затронутую документацию. Закрыть issue. |
-
----
-
 ## Validation Gates
-
-Перед мёржем PR:
 
 - [ ] Конфиги валидны (`docker compose config` без ошибок)
 - [ ] Стек поднимается локально (`make up` без ошибок)
 - [ ] Nginx корректно маршрутизирует запросы в обоих режимах (local / production)
 - [ ] Секреты не попали в коммит
 - [ ] Документация обновлена (CLAUDE.md, README.md при необходимости)
-- [ ] PR ограничен scope issue
-- [ ] Ревью выполнено, все замечания разрешены
 
 ---
