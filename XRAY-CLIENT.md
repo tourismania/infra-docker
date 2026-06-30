@@ -28,6 +28,24 @@ cp services/xray/config.json.example services/xray/config.json
 
 Эти данные выдаёт сервер при создании пользователя (например через `3x-ui` панель или CLI `xray`).
 
+```plain
+Если сервер настроен через панель 3x-ui (судя по XRAY-CLIENT.md, у вас так)
+
+Самый простой путь — зайти в панель и взять готовую ссылку клиента:
+
+1. Открыть панель 3x-ui в браузере (обычно http://<server-ip>:<panel-port>).
+2. Найти ваш inbound (VLESS + Reality).
+3. У нужного клиента нажать "QR-код" / "Export" / иконку ссылки — получите строку вида:
+vless://UUID@SERVER_IP:443?security=reality&sni=www.microsoft.com&fp=chrome&pbk=PUBLIC_KEY&sid=SHORT_ID&type=tcp&flow=xtls-rprx-vision#имя
+4. Разбираете по параметрам прямо в config.json:
+
+- UUID → outbounds[0].settings.vnext[0].users[0].id
+- pbk → realitySettings.publicKey
+- sid → realitySettings.shortId
+- sni → realitySettings.serverName
+- SERVER_IP и порт → vnext[0].address / port
+```
+
 > `services/xray/config.json` добавлен в `.gitignore` — в репозиторий не попадёт.
 
 ### 2. Включить прокси в .env
@@ -90,6 +108,7 @@ docker compose exec telegram-bot curl -s -o /dev/null -w "%{http_code}" \
 **Контейнер xray падает при старте**
 
 Проверь синтаксис конфига:
+
 ```bash
 docker compose run --rm xray xray -test -config /etc/xray/config.json
 ```
@@ -97,11 +116,13 @@ docker compose run --rm xray xray -test -config /etc/xray/config.json
 **Telegram-бот не достигает api.telegram.org через прокси**
 
 Проверь логи xray на предмет ошибок соединения с сервером:
+
 ```bash
 docker compose logs -f xray
 ```
 
 Убедись, что `XRAY_HTTP_PROXY` выставлен и виден в контейнере:
+
 ```bash
 docker compose exec telegram-bot env | grep -i proxy
 ```
@@ -112,6 +133,7 @@ docker compose exec telegram-bot env | grep -i proxy
 # .env
 XRAY_HTTP_PROXY=
 ```
+
 ```bash
 docker compose up -d telegram-bot
 ```

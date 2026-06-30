@@ -34,7 +34,7 @@
             "port": 443,
             "users": [
               {
-                "id": "59d35350-af6b-4278-8c6f-208d0897ea41",
+                "id": "YOUR_UUID",
                 "encryption": "none",
                 "flow": "xtls-rprx-vision"
               }
@@ -48,8 +48,8 @@
         "realitySettings": {
           "fingerprint": "chrome",
           "serverName": "www.microsoft.com",
-          "publicKey": "F0PIgZ073D1giYWhte0IdNEcgxYoaLCs2dUaBWta6G8",
-          "shortId": "bbbde5ec4b4953c4"
+          "publicKey": "YOUR_REALITY_PUBLIC_KEY",
+          "shortId": "YOUR_REALITY_SHORT_ID"
         }
       }
     },

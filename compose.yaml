@@ -85,6 +85,7 @@ services:
 
   xray:
     image: ghcr.io/xtls/xray-core:26.2.6
+    command: ["run", "-c", "/etc/xray/config.json"]
     volumes:
       - ./services/xray/config.json:/etc/xray/config.json:ro
     expose:
