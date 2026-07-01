@@ -157,6 +157,9 @@ def get_answers(ud: dict) -> str:
 # ══════════════════════════════════════════════════════════════
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if str(update.effective_chat.id) == ADMIN_CHAT_ID:
+        return ConversationHandler.END
+
     context.user_data.clear()
     sent = await update.message.reply_text(
         "🌴  Добро пожаловать!\n\n"
