@@ -30,16 +30,19 @@ deploy-infra:
 
 deploy-web-tag:
 	cd ${WEB_PATH} && git fetch --tags && git checkout $(TAG)
-	make down
 	docker compose build web
-	make up
+	docker compose up -d --no-deps web
 	make docker-clear
 
 deploy-api-tag:
 	cd ${API_PATH} && git fetch --tags && git checkout $(TAG)
 	cp ${API_PATH}/.env ./services/api/envs/.env
-	make down
 	docker compose build api
-	make up
+	docker compose up -d --no-deps api
 	make docker-clear
-	
+
+
+deploy-telegram-bot:
+	docker compose build telegram-bot
+	docker compose up -d telegram-bot
+	make docker-clear

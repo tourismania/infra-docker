@@ -83,6 +83,33 @@ services:
     networks:
       - tourismania_network
 
+  xray:
+    image: ghcr.io/xtls/xray-core:26.2.6
+    command: ["run", "-c", "/etc/xray/config.json"]
+    volumes:
+      - ./services/xray/config.json:/etc/xray/config.json:ro
+    expose:
+      - "1080" # SOCKS5
+      - "3128" # HTTP proxy
+    restart: unless-stopped
+    networks:
+      - tourismania_network
+
+  telegram-bot:
+    build:
+      context: ./services/telegram-bot/
+      dockerfile: Dockerfile
+    environment:
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
+      TELEGRAM_BOT_ADMIN_CHAT_ID: ${TELEGRAM_BOT_ADMIN_CHAT_ID}
+      HTTP_PROXY: ${XRAY_HTTP_PROXY:-}
+      HTTPS_PROXY: ${XRAY_HTTP_PROXY:-}
+    restart: unless-stopped
+    depends_on:
+      - xray
+    networks:
+      - tourismania_network
+
   # akhq - web для kafka
   kafka-ui:
     image: tchiotludo/akhq:latest

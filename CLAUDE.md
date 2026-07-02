@@ -7,7 +7,7 @@
 Docker Compose–инфраструктура для проекта **Tourismania** — единая точка деплоя всех сервисов на одном сервере. Контейнер nginx получает статический IP-адрес, чтобы основной nginx на хост-машине мог проксировать запросы в него. Репозиторий управляет только инфраструктурой; исходный код сервисов хранится в отдельных репозиториях и монтируется через переменные окружения.
 
 **Primary language:** YAML / Shell (Makefile)  
-**Key dependencies:** Docker, Docker Compose, nginx, PostgreSQL 17, Kafka 4.1.0 (KRaft), Go (Air в dev), Vue/Vite
+**Key dependencies:** Docker, Docker Compose, nginx, PostgreSQL 17, Kafka 4.1.0 (KRaft), Go (Air в dev), Vue/Vite, Python 3.12 (python-telegram-bot)
 
 ---
 
@@ -26,8 +26,17 @@ infra-docker/
 │   │   │   └── production/   # Nginx-конфиги для продакшена (tourismania.ru)
 │   │   ├── logs/             # access.log / error.log (не коммитится)
 │   │   └── ssl/              # SSL-сертификаты (не коммитится)
-│   └── api/
-│       └── envs/.env         # Переменные для Go API (не коммитится)
+│   ├── api/
+│   │   └── envs/.env         # Переменные для Go API (не коммитится)
+│   ├── telegram-bot/
+│   │   ├── telegram_bot.py        # Telegram-бот (опросник)
+│   │   ├── Dockerfile
+│   │   ├── requirements.txt
+│   │   └── images/*.jpg       # Фото стилей отелей
+│   └── xray/
+│       ├── config.json.example    # Шаблон конфига VLESS+Reality клиента
+│       └── .gitignore             # Игнорирует config.json (содержит ключи сервера)
+├── XRAY-CLIENT.md            # Инструкция по настройке X-Ray прокси
 ├── CLAUDE.md                 # Этот файл
 ├── AGENTS.md                 # Описание архитектуры для агентов (AI)
 ├── STYLE.md                  # Гайд по стилю
@@ -46,6 +55,8 @@ infra-docker/
 | `postgres`  | `postgres:17`                          | `5432:5432`              | БД; named volume `postgresql_data` |
 | `kafka`     | `apache/kafka:4.1.0`                   | —                        | KRaft-режим (без Zookeeper); порты 9092/9093 внутри сети |
 | `kafka-ui`  | `tchiotludo/akhq:latest`               | —                        | Веб-интерфейс Kafka (AKHQ); базовая аутентификация |
+| `telegram-bot`       | build из `./services/telegram-bot/`          | —                        | Telegram-бот (опросник для подбора туров); polling-режим |
+| `xray`      | `ghcr.io/xtls/xray-core:latest`        | —                        | VLESS+Reality прокси-клиент; HTTP `:3128`, SOCKS5 `:1080` внутри сети; используется telegram-bot |
 
 ---
 
@@ -84,11 +95,12 @@ infra-docker/
 
 ## Configuration Files (не коммитятся)
 
-| Файл                          | Назначение |
-|-------------------------------|------------|
-| `.env`                     | Основные переменные окружения стека; копируй из `.env.example` |
-| `services/api/envs/.env`   | Переменные Go API |
-| `services/nginx/ssl/`      | SSL-сертификаты |
+| Файл                            | Назначение |
+|---------------------------------|------------|
+| `.env`                          | Основные переменные окружения стека; копируй из `.env.example` |
+| `services/api/envs/.env`        | Переменные Go API |
+| `services/xray/config.json`     | Конфиг Xray-клиента с реальными ключами сервера; скопировать из `config.json.example` |
+| `services/nginx/ssl/`           | SSL-сертификаты |
 
 ---
 
