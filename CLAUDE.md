@@ -99,7 +99,6 @@ infra-docker/
 |---------------------------------|------------|
 | `.env`                          | Основные переменные окружения стека; копируй из `.env.example` |
 | `services/api/envs/.env`        | Переменные Go API |
-| `services/telegram-bot/hotel_*.jpg`   | Фотографии стилей отелей для бота (8 файлов, добавить вручную) |
 | `services/xray/config.json`     | Конфиг Xray-клиента с реальными ключами сервера; скопировать из `config.json.example` |
 | `services/nginx/ssl/`           | SSL-сертификаты |
 

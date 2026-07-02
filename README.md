@@ -80,7 +80,7 @@ make deploy-telegram-bot
 2. Собрать и запустить:
 
    ```bash
-   make deploy-bot
+   make deploy-telegram-bot
    # или
    docker compose build telegram-bot && docker compose up -d telegram-bot
    ```
