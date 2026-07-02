@@ -32,16 +32,15 @@ deploy-web-tag:
 	cd ${WEB_PATH} && git fetch --tags && git checkout $(TAG)
 	docker compose build web
 	docker compose up -d --no-deps web
-	docker container prune -f
-	docker image prune -f
+	make docker-clear
 
 deploy-api-tag:
 	cd ${API_PATH} && git fetch --tags && git checkout $(TAG)
 	cp ${API_PATH}/.env ./services/api/envs/.env
 	docker compose build api
 	docker compose up -d --no-deps api
-	docker container prune -f
-	docker image prune -f
+	make docker-clear
+
 
 deploy-telegram-bot:
 	docker compose build telegram-bot
