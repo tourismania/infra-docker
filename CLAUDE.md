@@ -130,3 +130,29 @@ infra-docker/
 | `README.md` | Меняется назначение проекта или инструкции по установке |
 | `CLAUDE.md` | Меняется архитектура, сервисы, конфиги или процесс разработки |
 | `AGENTS.md` | Меняется архитектурная схема для AI-агентов |
+
+---
+
+## Development Process
+
+### Workflow
+
+```plain
+Plan → Issue → Develop -> Docs -> Review → Merge
+```
+
+| Phase | Description |
+|-------|-------------|
+| **Plan** | Определить scope, зависимости, владельцев файлов. |
+| **Issue** | Создать GitHub Issue с acceptance criteria и negative constraints. Продбурировать описаниа в md файле `/docs/issues/{issue_id}.md` |
+| **Develop** | Реализация задачи в отдельной ветке, по Branch Strategy |
+| **Docs** | Обновить файлы документации |
+| **Review** | PR. Проверка корректности, покрытия, соответствия конвенциям. |
+| **Merge** | После апрува — merge в `main`. |
+
+
+### Branch Strategy
+
+- **`main`** — стабильный production-ready код
+- **Feature branches** — одна ветка на issue, от `main`
+  - Формат: `[type]/[issue-id]` (например, `feature/6`, `bugfix/12`)
