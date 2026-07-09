@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import os
 import sys
@@ -12,9 +13,19 @@ logging.basicConfig(
     level=logging.INFO
 )
 logger = logging.getLogger(__name__)
+watchdog_logger = logging.getLogger("watchdog")
 
 BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 ADMIN_CHAT_ID = os.getenv("TELEGRAM_BOT_ADMIN_CHAT_ID")
+
+# Бот может годами висеть на getUpdates через xray/Reality-туннель, который
+# иногда "тихо" обрывается (без FIN/RST) — httpx в этом случае может зависнуть
+# на переподключении дольше своих же таймаутов (см. issue #16). Watchdog
+# периодически дёргает get_me() и после нескольких неудач подряд убивает
+# процесс, чтобы `restart: unless-stopped` реально перезапустил контейнер.
+WATCHDOG_INTERVAL_SECONDS = int(os.getenv("WATCHDOG_INTERVAL_SECONDS", "180"))
+WATCHDOG_TIMEOUT_SECONDS = int(os.getenv("WATCHDOG_TIMEOUT_SECONDS", "20"))
+WATCHDOG_MAX_FAILURES = int(os.getenv("WATCHDOG_MAX_FAILURES", "3"))
 
 if not BOT_TOKEN:
     logger.critical("BOT_TOKEN is not set")
@@ -1031,8 +1042,45 @@ async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE):
     logger.error(f"Ошибка: {context.error}", exc_info=context.error)
 
 
+async def watchdog_check(context: ContextTypes.DEFAULT_TYPE):
+    """Проверяет, что Telegram API реально отвечает, и перезапускает процесс при зависании."""
+    failures = context.application.bot_data.get("watchdog_failures", 0)
+    try:
+        await asyncio.wait_for(context.bot.get_me(), timeout=WATCHDOG_TIMEOUT_SECONDS)
+    except Exception as e:
+        failures += 1
+        context.application.bot_data["watchdog_failures"] = failures
+        watchdog_logger.error(
+            "Проверка связи с Telegram API провалена (%s/%s): %s",
+            failures, WATCHDOG_MAX_FAILURES, e, exc_info=e,
+        )
+        if failures >= WATCHDOG_MAX_FAILURES:
+            watchdog_logger.critical(
+                "Поллинг не отвечает %s проверок подряд — принудительный выход для перезапуска контейнера",
+                failures,
+            )
+            os._exit(1)
+        return
+
+    if failures:
+        watchdog_logger.info("Связь с Telegram API восстановлена после %s неудачных проверок", failures)
+    context.application.bot_data["watchdog_failures"] = 0
+    watchdog_logger.info("Watchdog: связь с Telegram API в порядке")
+
+
 def main():
-    app = ApplicationBuilder().token(BOT_TOKEN).build()
+    app = (
+        ApplicationBuilder()
+        .token(BOT_TOKEN)
+        .connect_timeout(10)
+        .read_timeout(10)
+        .write_timeout(20)
+        .pool_timeout(10)
+        .get_updates_connect_timeout(10)
+        .get_updates_read_timeout(30)
+        .get_updates_pool_timeout(10)
+        .build()
+    )
 
     conv = ConversationHandler(
         entry_points=[CommandHandler("start", start)],
@@ -1076,6 +1124,23 @@ def main():
 
     app.add_handler(conv)
     app.add_error_handler(error_handler)
+
+    if app.job_queue is not None:
+        app.job_queue.run_repeating(
+            watchdog_check,
+            interval=WATCHDOG_INTERVAL_SECONDS,
+            first=WATCHDOG_INTERVAL_SECONDS,
+            name="watchdog",
+        )
+        logger.info(
+            "Watchdog включен: проверка каждые %sс, таймаут %sс, порог рестарта — %s неудач подряд",
+            WATCHDOG_INTERVAL_SECONDS, WATCHDOG_TIMEOUT_SECONDS, WATCHDOG_MAX_FAILURES,
+        )
+    else:
+        logger.warning(
+            "JobQueue недоступен (нет extra 'job-queue' у python-telegram-bot) — watchdog отключен"
+        )
+
     logger.info("Бот запущен ✅")
     app.run_polling(allowed_updates=Update.ALL_TYPES)
 

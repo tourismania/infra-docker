@@ -138,6 +138,18 @@ XRAY_HTTP_PROXY=
 docker compose up -d telegram-bot
 ```
 
+**Бот перестаёт отвечать через 15-20 минут работы (getUpdates замолкает без ошибок)**
+
+Reality-туннель до сервера иногда обрывается "тихо" (без FIN/RST) — типично для DPI/NAT на пути через РФ/КЗ сети. Без активного TCP keepalive ни xray, ни клиент не замечают обрыв, и переподключение может зависнуть дольше собственных таймаутов `httpx`.
+
+`services/xray/config.json.example` уже содержит `streamSettings.sockopt.tcpKeepAliveInterval: 15` на outbound `vless` — перенеси это же поле в свой `services/xray/config.json` на сервере (он не коммитится и не обновляется автоматически) и перезапусти `xray`:
+
+```bash
+docker compose up -d xray
+```
+
+Дополнительно `telegram-bot` теперь сам следит за живостью поллинга (watchdog на `job_queue`, см. `services/telegram-bot/telegram_bot.py`) и принудительно завершает процесс после нескольких неудачных проверок подряд, чтобы `restart: unless-stopped` его поднял заново.
+
 ---
 
 ## Альтернативная настройка прокси через код

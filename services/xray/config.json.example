@@ -45,6 +45,9 @@
       "streamSettings": {
         "network": "tcp",
         "security": "reality",
+        "sockopt": {
+          "tcpKeepAliveInterval": 15
+        },
         "realitySettings": {
           "fingerprint": "chrome",
           "serverName": "www.microsoft.com",
