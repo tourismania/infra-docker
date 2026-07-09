@@ -1043,7 +1043,6 @@ async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def watchdog_check(context: ContextTypes.DEFAULT_TYPE):
-    """Проверяет, что Telegram API реально отвечает, и перезапускает процесс при зависании."""
     failures = context.application.bot_data.get("watchdog_failures", 0)
     try:
         await asyncio.wait_for(context.bot.get_me(), timeout=WATCHDOG_TIMEOUT_SECONDS)

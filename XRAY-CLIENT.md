@@ -28,6 +28,12 @@ cp services/xray/config.json.example services/xray/config.json
 
 Эти данные выдаёт сервер при создании пользователя (например через `3x-ui` панель или CLI `xray`).
 
+Кроме серверных данных, в `streamSettings` outbound-а `vless` есть параметр, который не нужно менять, но полезно понимать:
+
+| Поле | Назначение |
+|------|-----------|
+| `sockopt.tcpKeepAliveInterval` | Интервал (в секундах) TCP keepalive-проб на туннеле до Reality-сервера. Без него "тихий" обрыв соединения (без FIN/RST — типично для DPI/NAT на пути через РФ/КЗ сети) не детектируется активно, и переподключение может зависнуть дольше собственных таймаутов клиента. |
+
 ```plain
 Если сервер настроен через панель 3x-ui (судя по XRAY-CLIENT.md, у вас так)
 
@@ -137,18 +143,6 @@ XRAY_HTTP_PROXY=
 ```bash
 docker compose up -d telegram-bot
 ```
-
-**Бот перестаёт отвечать через 15-20 минут работы (getUpdates замолкает без ошибок)**
-
-Reality-туннель до сервера иногда обрывается "тихо" (без FIN/RST) — типично для DPI/NAT на пути через РФ/КЗ сети. Без активного TCP keepalive ни xray, ни клиент не замечают обрыв, и переподключение может зависнуть дольше собственных таймаутов `httpx`.
-
-`services/xray/config.json.example` уже содержит `streamSettings.sockopt.tcpKeepAliveInterval: 15` на outbound `vless` — перенеси это же поле в свой `services/xray/config.json` на сервере (он не коммитится и не обновляется автоматически) и перезапусти `xray`:
-
-```bash
-docker compose up -d xray
-```
-
-Дополнительно `telegram-bot` теперь сам следит за живостью поллинга (watchdog на `job_queue`, см. `services/telegram-bot/telegram_bot.py`) и принудительно завершает процесс после нескольких неудачных проверок подряд, чтобы `restart: unless-stopped` его поднял заново.
 
 ---
 
