@@ -144,7 +144,7 @@ Plan → Issue → Develop -> Docs -> Review → Merge
 | Phase | Description |
 |-------|-------------|
 | **Plan** | Определить scope, зависимости, владельцев файлов. |
-| **Issue** | Создать GitHub Issue с acceptance criteria и negative constraints. Продбурировать описаниа в md файле `/docs/issues/{issue_id}.md` |
+| **Issue** | Создать GitHub Issue с acceptance criteria и negative constraints и заполнить ее относительно Issues rules. Экспортировать все описание задачи в md файл `/docs/issues/{issue_id}.md` |
 | **Develop** | Реализация задачи в отдельной ветке, по Branch |
 | **Docs** | Обновить файлы документации |
 | **Review** | PR. Проверка корректности, покрытия, соответствия конвенциям. |
@@ -157,7 +157,7 @@ Plan → Issue → Develop -> Docs -> Review → Merge
 - **Feature branches** — одна ветка на issue, от `main`
   - Формат: `[type]/[issue-id]` (например, `feature/6`, `bugfix/12`)
 
-### Issues
+### Issues rules
 
 При создании задачи, необходимо:
     - привязать задачу к проекту `development`;
