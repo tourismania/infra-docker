@@ -2,11 +2,21 @@ import asyncio
 import logging
 import os
 import sys
+from warnings import filterwarnings
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, InputMediaPhoto
 from telegram.ext import (
     ApplicationBuilder, CommandHandler, MessageHandler, CallbackQueryHandler,
     ConversationHandler, filters, ContextTypes
 )
+from telegram.warnings import PTBUserWarning
+
+# ConversationHandler ниже смешивает состояния только с CallbackQueryHandler
+# и состояния только с MessageHandler, поэтому per_message=True невозможен
+# (per_message=True отбрасывает все обновления без callback_query — сломает
+# текстовые состояния). Опросник — линейный один-пользователь-один-диалог,
+# трекинг CallbackQueryHandler по (chat_id, user_id) вместо per-message
+# корректен по дизайну, так что предупреждение — ложное срабатывание (issue #19).
+filterwarnings(action="ignore", message=r".*CallbackQueryHandler", category=PTBUserWarning)
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
