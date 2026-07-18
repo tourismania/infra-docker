@@ -55,7 +55,7 @@ infra-docker/
 | `postgres`  | `postgres:17`                          | `5432:5432`              | БД; named volume `postgresql_data` |
 | `kafka`     | `apache/kafka:4.1.0`                   | —                        | KRaft-режим (без Zookeeper); порты 9092/9093 внутри сети |
 | `kafka-ui`  | `tchiotludo/akhq:latest`               | —                        | Веб-интерфейс Kafka (AKHQ); базовая аутентификация |
-| `telegram-bot`       | build из `./services/telegram-bot/`          | —                        | Telegram-бот (опросник для подбора туров); polling-режим; watchdog на `job_queue` проверяет и `get_me()`, и свежесть последнего `getUpdates` (см. issue #22) — перезапускает процесс при зависании любого из каналов |
+| `telegram-bot`       | build из `./services/telegram-bot/`          | —                        | Telegram-бот (опросник для подбора туров); polling-режим; watchdog на `job_queue` проверяет свежесть последнего `getUpdates` напрямую (см. issue #22) — перезапускает процесс, если поллинг завис |
 | `xray`      | `ghcr.io/xtls/xray-core:latest`        | —                        | VLESS+Reality прокси-клиент; HTTP `:3128`, SOCKS5 `:1080` внутри сети; используется telegram-bot |
 
 ---
