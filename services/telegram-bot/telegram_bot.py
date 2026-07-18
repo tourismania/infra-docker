@@ -2,11 +2,13 @@ import asyncio
 import logging
 import os
 import sys
+import time
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, InputMediaPhoto
 from telegram.ext import (
     ApplicationBuilder, CommandHandler, MessageHandler, CallbackQueryHandler,
     ConversationHandler, filters, ContextTypes
 )
+from telegram.request import HTTPXRequest
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -23,9 +25,16 @@ ADMIN_CHAT_ID = os.getenv("TELEGRAM_BOT_ADMIN_CHAT_ID")
 # на переподключении дольше своих же таймаутов (см. issue #16). Watchdog
 # периодически дёргает get_me() и после нескольких неудач подряд убивает
 # процесс, чтобы `restart: unless-stopped` реально перезапустил контейнер.
+#
+# get_me() и getUpdates используют разные HTTP-клиенты (см. issue #22): тот
+# же самый "тихий" обрыв туннеля может остановить именно поллинг, пока get_me()
+# продолжает успешно проходить по новому соединению. Поэтому дополнительно
+# отслеживается возраст последнего завершившегося запроса getUpdates —
+# см. _GetUpdatesFreshnessTracker ниже.
 WATCHDOG_INTERVAL_SECONDS = int(os.getenv("WATCHDOG_INTERVAL_SECONDS", "180"))
 WATCHDOG_TIMEOUT_SECONDS = int(os.getenv("WATCHDOG_TIMEOUT_SECONDS", "20"))
 WATCHDOG_MAX_FAILURES = int(os.getenv("WATCHDOG_MAX_FAILURES", "3"))
+WATCHDOG_GETUPDATES_MAX_AGE_SECONDS = int(os.getenv("WATCHDOG_GETUPDATES_MAX_AGE_SECONDS", "120"))
 
 if not BOT_TOKEN:
     logger.critical("BOT_TOKEN is not set")
@@ -1042,20 +1051,55 @@ async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE):
     logger.error(f"Ошибка: {context.error}", exc_info=context.error)
 
 
+# Устанавливается при импорте модуля — до первого реального getUpdates
+# возраст отсчитывается от старта процесса, а не от условного "никогда".
+_last_get_updates_at = time.monotonic()
+
+
+class _GetUpdatesFreshnessTracker(HTTPXRequest):
+    """HTTPXRequest для getUpdates, фиксирующий время последнего завершившегося запроса.
+
+    Используется только для getUpdates (см. ApplicationBuilder.get_updates_request
+    в main()) — get_me и остальные методы бота ходят через отдельный HTTPXRequest
+    и на эту метку не влияют.
+    """
+
+    async def do_request(self, *args, **kwargs):
+        status_code, payload = await super().do_request(*args, **kwargs)
+        if status_code == 200:
+            global _last_get_updates_at
+            _last_get_updates_at = time.monotonic()
+        return status_code, payload
+
+
 async def watchdog_check(context: ContextTypes.DEFAULT_TYPE):
     failures = context.application.bot_data.get("watchdog_failures", 0)
+    getupdates_age = time.monotonic() - _last_get_updates_at
+    getupdates_stale = getupdates_age > WATCHDOG_GETUPDATES_MAX_AGE_SECONDS
+
+    getme_error = None
     try:
         await asyncio.wait_for(context.bot.get_me(), timeout=WATCHDOG_TIMEOUT_SECONDS)
     except Exception as e:
+        getme_error = e
+
+    if getme_error is not None or getupdates_stale:
         failures += 1
         context.application.bot_data["watchdog_failures"] = failures
-        watchdog_logger.error(
-            "Проверка связи с Telegram API провалена (%s/%s): %s",
-            failures, WATCHDOG_MAX_FAILURES, e, exc_info=e,
-        )
+        if getme_error is not None:
+            watchdog_logger.error(
+                "Проверка связи с Telegram API провалена (%s/%s): %s; "
+                "getUpdates последний раз отвечал %.0fс назад",
+                failures, WATCHDOG_MAX_FAILURES, getme_error, getupdates_age, exc_info=getme_error,
+            )
+        else:
+            watchdog_logger.error(
+                "getUpdates не отвечал %.0fс (порог %sс) при исправном get_me — поллинг завис (%s/%s)",
+                getupdates_age, WATCHDOG_GETUPDATES_MAX_AGE_SECONDS, failures, WATCHDOG_MAX_FAILURES,
+            )
         if failures >= WATCHDOG_MAX_FAILURES:
             watchdog_logger.critical(
-                "Поллинг не отвечает %s проверок подряд — принудительный выход для перезапуска контейнера",
+                "Проверки не проходят %s раз подряд — принудительный выход для перезапуска контейнера",
                 failures,
             )
             os._exit(1)
@@ -1064,7 +1108,10 @@ async def watchdog_check(context: ContextTypes.DEFAULT_TYPE):
     if failures:
         watchdog_logger.info("Связь с Telegram API восстановлена после %s неудачных проверок", failures)
     context.application.bot_data["watchdog_failures"] = 0
-    watchdog_logger.info("Watchdog: связь с Telegram API в порядке")
+    watchdog_logger.info(
+        "Watchdog: связь с Telegram API в порядке (getUpdates отвечал %.0fс назад)",
+        getupdates_age,
+    )
 
 
 def main():
@@ -1075,9 +1122,16 @@ def main():
         .read_timeout(10)
         .write_timeout(20)
         .pool_timeout(10)
-        .get_updates_connect_timeout(10)
-        .get_updates_read_timeout(30)
-        .get_updates_pool_timeout(10)
+        .get_updates_request(
+            # Свой HTTPXRequest вместо .get_updates_connect_timeout()/.get_updates_read_timeout()/
+            # .get_updates_pool_timeout() — ApplicationBuilder не даёт смешивать эти билдеры
+            # с готовым request-инстансом. Таймауты те же, что были раньше (10/30/10).
+            _GetUpdatesFreshnessTracker(
+                connect_timeout=10,
+                read_timeout=30,
+                pool_timeout=10,
+            )
+        )
         .build()
     )
 
@@ -1132,8 +1186,10 @@ def main():
             name="watchdog",
         )
         logger.info(
-            "Watchdog включен: проверка каждые %sс, таймаут %sс, порог рестарта — %s неудач подряд",
-            WATCHDOG_INTERVAL_SECONDS, WATCHDOG_TIMEOUT_SECONDS, WATCHDOG_MAX_FAILURES,
+            "Watchdog включен: проверка каждые %sс, таймаут %sс, порог свежести getUpdates %sс, "
+            "порог рестарта — %s неудач подряд",
+            WATCHDOG_INTERVAL_SECONDS, WATCHDOG_TIMEOUT_SECONDS,
+            WATCHDOG_GETUPDATES_MAX_AGE_SECONDS, WATCHDOG_MAX_FAILURES,
         )
     else:
         logger.warning(
