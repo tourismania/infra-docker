@@ -19,14 +19,10 @@ watchdog_logger = logging.getLogger("watchdog")
 BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 ADMIN_CHAT_ID = os.getenv("TELEGRAM_BOT_ADMIN_CHAT_ID")
 
-# Бот может годами висеть на getUpdates через xray/Reality-туннель, который
-# иногда "тихо" обрывается (без FIN/RST) — httpx в этом случае может зависнуть
-# на переподключении дольше своих же таймаутов (см. issue #16). get_me() и
-# getUpdates используют разные HTTP-клиенты (см. issue #22), так что обрыв
-# именно поллинга не виден через get_me() — watchdog проверяет напрямую
-# возраст последнего завершившегося getUpdates (_GetUpdatesFreshnessTracker
-# ниже) и после нескольких неудач подряд убивает процесс, чтобы
-# `restart: unless-stopped` реально перезапустил контейнер.
+# getUpdates может тихо зависнуть без единой ошибки в логах (issue #16, #22).
+# Watchdog следит за возрастом последнего успешного getUpdates и после
+# нескольких неудач подряд убивает процесс — restart: unless-stopped поднимет
+# контейнер заново.
 WATCHDOG_INTERVAL_SECONDS = int(os.getenv("WATCHDOG_INTERVAL_SECONDS", "180"))
 WATCHDOG_MAX_FAILURES = int(os.getenv("WATCHDOG_MAX_FAILURES", "3"))
 WATCHDOG_GETUPDATES_MAX_AGE_SECONDS = int(os.getenv("WATCHDOG_GETUPDATES_MAX_AGE_SECONDS", "120"))
