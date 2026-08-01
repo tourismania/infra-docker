@@ -1,0 +1,73 @@
+services:
+  # Официальный образ Loki работает под непривилегированным uid 10001 и не содержит
+  # шелла (distroless), а свежий named volume монтируется с правами root — чиним
+  # владельца отдельным busybox-контейнером перед стартом.
+  loki-init:
+    image: busybox:1.36.1
+    user: root
+    entrypoint:
+      - sh
+      - -c
+      - mkdir -p /loki/chunks /loki/rules && chown -R 10001:10001 /loki
+    volumes:
+      - loki_data:/loki
+    networks:
+      - tourismania_network
+
+  loki:
+    image: grafana/loki:3.6.0
+    command: -config.file=/etc/loki/loki-config.yaml
+    depends_on:
+      loki-init:
+        condition: service_completed_successfully
+    volumes:
+      - ./services/observability/loki/loki-config.yaml:/etc/loki/loki-config.yaml:ro
+      - loki_data:/loki
+    expose:
+      - "3100"
+    networks:
+      - tourismania_network
+
+  alloy:
+    image: grafana/alloy:v1.17.1
+    command:
+      - run
+      - --server.http.listen-addr=0.0.0.0:12345
+      - --storage.path=/var/lib/alloy/data
+      - /etc/alloy/config.alloy
+    volumes:
+      - ./services/observability/alloy/config.alloy:/etc/alloy/config.alloy:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - alloy_data:/var/lib/alloy/data
+    expose:
+      - "12345"
+    depends_on:
+      - loki
+    networks:
+      - tourismania_network
+
+  grafana:
+    image: grafana/grafana:12.4.0
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      - ./services/observability/grafana/provisioning:/etc/grafana/provisioning:ro
+      - grafana_data:/var/lib/grafana
+    ports:
+      - "3000:3000"
+    depends_on:
+      - loki
+    networks:
+      - tourismania_network
+
+volumes:
+  loki_data:
+  alloy_data:
+  grafana_data:
+
+networks:
+  tourismania_network:
+    external: true
+    name: ${COMPOSE_PROJECT_NAME}_tourismania_network
